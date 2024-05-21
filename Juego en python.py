@@ -31,7 +31,7 @@ def juego_solo():
     left_paddle_y = (screen_height - paddle_height) // 2
     right_paddle_y = (screen_height - paddle_height) // 2
     paddle_speed = 10
-    ai_speed = 5
+    ai_speed = 7
 
     # Variables de la pelota
     ball_size = 20
@@ -39,7 +39,7 @@ def juego_solo():
     ball_y = (screen_height - ball_size) // 2
     ball_speed_x = 5
     ball_speed_y = 5
-
+    choques=0
     # Puntajes
     left_score = 0
     right_score = 0
@@ -63,11 +63,20 @@ def juego_solo():
         if keys[pygame.K_s] and left_paddle_y < screen_height - paddle_height:
             left_paddle_y += paddle_speed
 
-        # Control de la paleta de la máquina (derecha)
+       # ...
+
+# Control de la paleta de la máquina (derecha)
         if right_paddle_y + paddle_height // 2 < ball_y and right_paddle_y < screen_height - paddle_height:
-            right_paddle_y += ai_speed
+    # Suaviza el movimiento hacia la posición de la pelota
+         target_y = ball_y - paddle_height // 2
+         right_paddle_y += (target_y - right_paddle_y) * 0.4  # Ajusta el factor de suavizado
+
         if right_paddle_y + paddle_height // 2 > ball_y and right_paddle_y > 0:
-            right_paddle_y -= ai_speed
+    # Suaviza el movimiento hacia la posición de la pelota
+         target_y = ball_y - paddle_height // 2
+         right_paddle_y += (target_y - right_paddle_y) * 0.4  # Ajusta el factor de suavizado
+
+# ...
 
         # Movimiento de la pelota
         ball_x += ball_speed_x
@@ -77,31 +86,34 @@ def juego_solo():
         if ball_y <= 0 or ball_y >= screen_height - ball_size:
             ball_speed_y *= -1
 
-            # Colisión con las paletas
-        if (left_paddle_x < ball_x < left_paddle_x + paddle_width and
-            left_paddle_y < ball_y < left_paddle_y + paddle_height):
-            ball_speed_x *= -1
-        if (right_paddle_x < ball_x < right_paddle_x + paddle_width and
-                right_paddle_y < ball_y < right_paddle_y + paddle_height):
-            ball_speed_x *= -1
-
+   
         # Colisión con los bordes izquierdo y derecho
         if ball_x <= 0:
             right_score += 1
             ball_x = (screen_width - ball_size) // 2
             ball_y = (screen_height - ball_size) // 2
             ball_speed_x *= -1
+            ball_speed_x=5
+            choques=0
         if ball_x >= screen_width - ball_size:
             left_score += 1
             ball_x = (screen_width - ball_size) // 2
             ball_y = (screen_height - ball_size) // 2
             ball_speed_x *= -1
-
+            ball_speed_x=5
+            choques=0
         # Dibujar todo
         screen.fill(black)
-        pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
-        pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
-        pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
+        player1=pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
+        ai=pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
+        ball=pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
+
+        #colision de la pelota con los jugadores
+        if ball.colliderect(ai) or ball.colliderect(player1):
+         ball_speed_x *= -1
+         ball_speed_x+=choques
+         choques+=1 
+         ball_speed_y=5
         pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
 
         left_text = font.render("Tu = " + str(left_score), True, white)
@@ -149,7 +161,7 @@ def A_vs_B():
             ball_y = (screen_height - ball_size) // 2
             ball_speed_x = 5
             ball_speed_y = 5
-
+            colision=0
             # Puntajes
             left_score = 0
             right_score = 0
@@ -184,7 +196,7 @@ def A_vs_B():
                 # Colisión con los bordes superior e inferior
                 if ball_y <= 0 or ball_y >= screen_height - ball_size:
                     ball_speed_y *= -1
-
+                '''
                 # Colisión con las paletas
                 if (left_paddle_x < ball_x < left_paddle_x + paddle_width and
                         left_paddle_y < ball_y < left_paddle_y + paddle_height):
@@ -192,26 +204,36 @@ def A_vs_B():
                 if (right_paddle_x < ball_x < right_paddle_x + paddle_width and
                         right_paddle_y < ball_y < right_paddle_y + paddle_height):
                     ball_speed_x *= -1
-
+'''
                 # Colisión con los bordes izquierdo y derecho
                 if ball_x <= 0:
                     right_score += 1
                     ball_x = (screen_width - ball_size) // 2
                     ball_y = (screen_height - ball_size) // 2
+                    ball_speed_x=5 
                     ball_speed_x *= -1
+                    colision=0
+                  
                 if ball_x >= screen_width - ball_size:
                     left_score += 1
                     ball_x = (screen_width - ball_size) // 2
                     ball_y = (screen_height - ball_size) // 2
+                    ball_speed_x=5
                     ball_speed_x *= -1
-
+                    colision=0
+                  
                 # Dibujar todo
                 screen.fill(black)
-                pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
-                pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
-                pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
+                jugador1= pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
+                jugador2=pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
+                pelota=pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
                 pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
             
+                if pelota.colliderect(jugador1) or pelota.colliderect(jugador2):
+                    ball_speed_x *= -1
+                    colision+=1
+                    ball_speed_x+=colision
+                    ball_speed_y=5
                 # anotar los puntos
                 nombre_1 = usuario_1.get()
                 nombre_2 = usuario_2.get()
