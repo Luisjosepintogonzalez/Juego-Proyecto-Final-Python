@@ -69,12 +69,12 @@ def juego_solo():
         if right_paddle_y + paddle_height // 2 < ball_y and right_paddle_y < screen_height - paddle_height:
     # Suaviza el movimiento hacia la posición de la pelota
          target_y = ball_y - paddle_height // 2
-         right_paddle_y += (target_y - right_paddle_y) * 0.4  # Ajusta el factor de suavizado
+         right_paddle_y += (target_y - right_paddle_y) * 0.1  # Ajusta el factor de suavizado entre mayor sea, mayor dificultad
 
         if right_paddle_y + paddle_height // 2 > ball_y and right_paddle_y > 0:
     # Suaviza el movimiento hacia la posición de la pelota
          target_y = ball_y - paddle_height // 2
-         right_paddle_y += (target_y - right_paddle_y) * 0.4  # Ajusta el factor de suavizado
+         right_paddle_y += (target_y - right_paddle_y) * 0.1 # Ajusta el factor de suavizado
 
 # ...
 
@@ -110,10 +110,21 @@ def juego_solo():
 
         #colision de la pelota con los jugadores
         if ball.colliderect(ai) or ball.colliderect(player1):
-         ball_speed_x *= -1
-         ball_speed_x+=choques
-         choques+=1 
-         ball_speed_y=5
+         if choques<5:
+          choques+=1
+          ball_speed_x+=choques
+          ball_speed_x *= -1
+          ball_speed_y=5
+         else:
+          if ball_x>52:
+           choquesfull=5
+           ball_speed_x=choquesfull
+           choques=3
+          if ball_x>(screen_width - 52 - paddle_width):
+                      choquesfull=5
+                      ball_speed_x=choquesfull
+                      choques=3
+
         pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
 
         left_text = font.render("Tu = " + str(left_score), True, white)
@@ -230,10 +241,21 @@ def A_vs_B():
                 pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
             
                 if pelota.colliderect(jugador1) or pelota.colliderect(jugador2):
-                    ball_speed_x *= -1
+                   if colision<5:
                     colision+=1
                     ball_speed_x+=colision
+                    ball_speed_x *= -1
                     ball_speed_y=5
+                   else:
+                     if ball_x>52:
+                      choquesfull=5
+                      ball_speed_x=choquesfull
+                      colision=3
+                     if ball_x>(screen_width - 52 - paddle_width):
+                      choquesfull=5
+                      ball_speed_x=choquesfull
+                      colision=3
+                
                 # anotar los puntos
                 nombre_1 = usuario_1.get()
                 nombre_2 = usuario_2.get()
