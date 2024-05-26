@@ -106,39 +106,35 @@ def juego_solo():
     # Inicialización de pygame
     pygame.init()
     # Configuración de la pantalla
-    screen_width = 800
-    screen_height = 600
+    screen_width = 1200
+    screen_height = 800
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Ping Pong")
 
     # Cargar la imagen de fondo
-    background_image = pygame.image.load("mesa solo.png")
+    background_image = pygame.image.load("mesa azul.png")
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
-
-    # Cargar la imagen de las paletas
-    paddle_image = pygame.image.load("paletas.png")
-    paddle_image = pygame.transform.scale(paddle_image, (10, 100))  # Ajusta el tamaño según sea necesario
 
     # Colores
     white = (255, 255, 255)
     black = (30, 100, 0)
 
     # Variables de las paletas
-    paddle_width = paddle_image.get_width()
-    paddle_height = paddle_image.get_height()
+    paddle_width = 10
+    paddle_height = 100
     left_paddle_x = 50
     right_paddle_x = screen_width - 50 - paddle_width
     left_paddle_y = (screen_height - paddle_height) // 2
     right_paddle_y = (screen_height - paddle_height) // 2
     paddle_speed = 10
-    ai_speed = 5
+    ai_speed = 9
 
     # Variables de la pelota
-    ball_size = 20
+    ball_size = 40
     ball_x = (screen_width - ball_size) // 2
     ball_y = (screen_height - ball_size) // 2
-    ball_speed_x = 5
-    ball_speed_y = 5
+    ball_speed_x = 9
+    ball_speed_y = 9
 
     # Puntajes
     left_score = 0
@@ -199,8 +195,8 @@ def juego_solo():
 
         # Dibujar todo
         screen.blit(background_image, (0, 0))
-        screen.blit(paddle_image, (left_paddle_x, left_paddle_y))
-        screen.blit(paddle_image, (right_paddle_x, right_paddle_y))
+        pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
+        pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
         pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
         pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
 
