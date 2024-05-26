@@ -111,13 +111,21 @@ def juego_solo():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Ping Pong")
 
+    # Cargar la imagen de fondo
+    background_image = pygame.image.load("mesa solo.png")
+    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+
+    # Cargar la imagen de las paletas
+    paddle_image = pygame.image.load("paletas.png")
+    paddle_image = pygame.transform.scale(paddle_image, (10, 100))  # Ajusta el tamaño según sea necesario
+
     # Colores
     white = (255, 255, 255)
     black = (30, 100, 0)
 
     # Variables de las paletas
-    paddle_width = 10
-    paddle_height = 100
+    paddle_width = paddle_image.get_width()
+    paddle_height = paddle_image.get_height()
     left_paddle_x = 50
     right_paddle_x = screen_width - 50 - paddle_width
     left_paddle_y = (screen_height - paddle_height) // 2
@@ -169,7 +177,7 @@ def juego_solo():
         if ball_y <= 0 or ball_y >= screen_height - ball_size:
             ball_speed_y *= -1
 
-            # Colisión con las paletas
+        # Colisión con las paletas
         if (left_paddle_x < ball_x < left_paddle_x + paddle_width and
             left_paddle_y < ball_y < left_paddle_y + paddle_height):
             ball_speed_x *= -1
@@ -190,9 +198,9 @@ def juego_solo():
             ball_speed_x *= -1
 
         # Dibujar todo
-        screen.fill(black)
-        pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
-        pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
+        screen.blit(background_image, (0, 0))
+        screen.blit(paddle_image, (left_paddle_x, left_paddle_y))
+        screen.blit(paddle_image, (right_paddle_x, right_paddle_y))
         pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
         pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
 
@@ -206,6 +214,7 @@ def juego_solo():
 
     pygame.quit()
     sys.exit()
+
 
 def A_vs_B():
     a = usuario_1.get()
