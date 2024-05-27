@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import pygame
 import sys
 
+
 # para cambiar en ajustes el idioma
 def cambiar_idioma(idioma):
     global boton_jugar_solo, boton_jugar, boton_hard, boton_validar, ventana
@@ -111,6 +112,7 @@ def juego_solo():
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Ping Pong")
 
+
     # Cargar la imagen de fondo
     background_image = pygame.image.load("mesa azul.png")
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
@@ -119,10 +121,48 @@ def juego_solo():
     white = (255, 255, 255)
     black = (30, 100, 0)
 
+    class Raqueta(pygame.sprite.Sprite):
+        def __init__(self,paddel,paddle_width,paddle_height):
+            super().__init__()
+            self.paddle_width=paddle_width
+            self.paddle_height=paddle_height
+            self.image=pygame.image.load("tablar.png").convert()
+            self.image= pygame.transform.scale(self.image,(self.paddle_width, self.paddle_height)) #elimina color blanco #el nombre debe tener image o sino no funciona
+            self.image.set_colorkey([0,0,0]) #elimina color negro
+            self.rect=self.image.get_rect() #ayuda a posicionar la imagen
+            self.rect.y = (screen_height - self.paddle_height) // 2
+            self.rect.x=paddel
+            self.speedy=0
+        def  cambio(self,y):
+         self.speedy +=y
+
+        def update(self):
+         self.rect.y += self.speedy
+         if self.rect.y<0 or self.rect.y>(screen_height-self.paddle_height):
+             self.speedy *=-1
+             self.speedy=0
+        
+    class pelota(pygame.sprite.Sprite):
+         def __init__(self):
+          super().__init__()
+          self.ballzc= 40
+          self.speedx=7
+          self.speedy=7
+          self.image=pygame.image.load("ajustes.png").convert_alpha()
+          self.image= pygame.transform.scale(self.image,(self.ballzc, self.ballzc))
+          self.image.set_colorkey([255,255,255])
+           #elimina color blanco #el nombre debe tener image o sino no funciona
+          self.rect=self.image.get_rect()
+
+         def update(self):
+           self.rect.x += self.speedx
+           self.rect.y += self.speedy
+           
     # Variables de las paletas
-    paddle_width = 10
-    paddle_height = 100
-    left_paddle_x = 50
+    #paddle_width = 10
+    #paddle_height = 100
+    ''' left_paddle_x = 50
+   
     right_paddle_x = screen_width - 50 - paddle_width
     left_paddle_y = (screen_height - paddle_height) // 2
     right_paddle_y = (screen_height - paddle_height) // 2
@@ -135,7 +175,7 @@ def juego_solo():
     ball_y = (screen_height - ball_size) // 2
     ball_speed_x = 9
     ball_speed_y = 9
-
+    '''
     # Puntajes
     left_score = 0
     right_score = 0
@@ -147,6 +187,16 @@ def juego_solo():
     running = True
     clock = pygame.time.Clock()
 
+    all_list_sprite= pygame.sprite.Group()
+    raqt=pygame.sprite.Group()
+    player= Raqueta(50,50,100)
+    ai=Raqueta(screen_width - 50 - player.paddle_width,50,100)
+    ball=pelota()
+    raqt.add(player)
+    raqt.add(ai)
+    all_list_sprite.add(ball)
+    all_list_sprite.add(raqt)
+    pygame.init()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -154,50 +204,64 @@ def juego_solo():
 
         # Controles de la paleta del jugador (izquierda)
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_w] and left_paddle_y > 0:
-            left_paddle_y -= paddle_speed
-        if keys[pygame.K_s] and left_paddle_y < screen_height - paddle_height:
-            left_paddle_y += paddle_speed
+        if keys[pygame.K_w] and player.rect.y >= 0:
+           player.cambio(-1)
+        if keys[pygame.K_s] and player.rect.y< screen_height - player.paddle_height:
+           player.cambio(1)
 
         # Control de la paleta de la máquina (derecha)
-        if right_paddle_y + paddle_height // 2 < ball_y and right_paddle_y < screen_height - paddle_height:
-            right_paddle_y += ai_speed
-        if right_paddle_y + paddle_height // 2 > ball_y and right_paddle_y > 0:
-            right_paddle_y -= ai_speed
+        if ai.rect.y + player.paddle_height // 2 <= ball.rect.y and ai.rect.y < screen_height - player.paddle_height:
+            ai.cambio(5)
+        if ai.rect.y +player.paddle_height // 2 >= ball.rect.y and ai.rect.y > 0:
+            ai.cambio(-5)
 
         # Movimiento de la pelota
-        ball_x += ball_speed_x
-        ball_y += ball_speed_y
 
         # Colisión con los bordes superior e inferior
-        if ball_y <= 0 or ball_y >= screen_height - ball_size:
-            ball_speed_y *= -1
+        if ball.rect.y <= 0 or ball.rect.y >= screen_height - ball.ballzc:
+            ball.speedy *= -1
 
         # Colisión con las paletas
-        if (left_paddle_x < ball_x < left_paddle_x + paddle_width and
-            left_paddle_y < ball_y < left_paddle_y + paddle_height):
-            ball_speed_x *= -1
-        if (right_paddle_x < ball_x < right_paddle_x + paddle_width and
-                right_paddle_y < ball_y < right_paddle_y + paddle_height):
-            ball_speed_x *= -1
-
+        if (player.rect.x < ball.rect.x < player.rect.x + player.paddle_width and
+            player.rect.y < ball.rect.y< player.rect.y + player.paddle_height):
+            ball.speedx+=1
+            ball.speedx*= -1
+        if (ai.rect.x  < ball.rect.x < ai.rect.x + ai.paddle_width and
+                ai.rect.y < ball.rect.y < ai.rect.y + ai.paddle_height):
+            ball.speedx+=ball.speedx
+            ball.speedx *= -1
+        # En el bucle principal del juego
+        if pygame.sprite.spritecollide(ball, raqt, False):
+           ball.speedx *= -1
+           ball.speedy *= -1
+ 
+            
+    # ball es la pelota
+    # collided_paletas es una lista de las paletas con las que colisionó
+    # Agrega aquí la lógica que desees para manejar la colisión
         # Colisión con los bordes izquierdo y derecho
-        if ball_x <= 0:
+        if ball.rect.x <= 0:
             right_score += 1
-            ball_x = (screen_width - ball_size) // 2
-            ball_y = (screen_height - ball_size) // 2
-            ball_speed_x *= -1
-        if ball_x >= screen_width - ball_size:
+            ball.rect.x= (screen_width - ball.ballzc) // 2
+            ball.rect.y = (screen_height - ball.ballzc) // 2
+            ball.speedx *= -1
+        if ball.rect.x >= screen_width - ball.ballzc:
             left_score += 1
-            ball_x = (screen_width - ball_size) // 2
-            ball_y = (screen_height - ball_size) // 2
-            ball_speed_x *= -1
+            ball.rect.x = (screen_width - ball.ballzc) // 2
+            ball.rect.y = (screen_height - ball.ballzc) // 2
+            ball.speedx *= -1
+ 
+        all_list_sprite.update()
 
         # Dibujar todo
-        screen.blit(background_image, (0, 0))
+        screen.blit(background_image, (0, 0))         
+        all_list_sprite.draw(screen)
+        '''
         pygame.draw.rect(screen, white, (left_paddle_x, left_paddle_y, paddle_width, paddle_height))
         pygame.draw.rect(screen, white, (right_paddle_x, right_paddle_y, paddle_width, paddle_height))
-        pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
+        '''
+      
+       # pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
         pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
 
         left_text = font.render("Tu = " + str(left_score), True, white)
@@ -205,7 +269,7 @@ def juego_solo():
         right_text = font.render("PC = " + str(right_score), True, white)
         screen.blit(right_text, (screen_width // 4 * 3, 20))
 
-        pygame.display.flip()
+        pygame.display.update()
         clock.tick(60)
 
     pygame.quit()
