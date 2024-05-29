@@ -406,9 +406,9 @@ def juego_solo():
 
                 # movimiento automático de la paleta del pc
                 if self.ai.rect.centery < self.ball.rect.centery:
-                    self.ai.rect.y += 12
+                    self.ai.rect.y += 13
                 else:
-                    self.ai.rect.y -= 12
+                    self.ai.rect.y -= 13
 
                 # colisión con las paletas
                 if pygame.sprite.collide_mask(self.ball, self.player) or pygame.sprite.collide_mask(self.ball, self.ai):
@@ -487,9 +487,9 @@ def juego_solo():
             super().__init__()
             self.screen_height = screen_height
             self.screen_width = screen_width
-            self.ballzc = 40
-            self.speedx = 15
-            self.speedy = 15
+            self.ballzc = 45
+            self.speedx = 17
+            self.speedy = 16
             self.left_score = left_score
             self.right_score = right_score
             self.image = pygame.image.load("pelota.png").convert_alpha()
@@ -688,9 +688,9 @@ def A_vs_B():
             super().__init__()
             self.screen_height = screen_height
             self.screen_width = screen_width
-            self.ballzc = 40
-            self.speedx = 15
-            self.speedy = 15
+            self.ballzc = 50
+            self.speedx = 20
+            self.speedy = 20
             self.left_score = left_score
             self.right_score = right_score
             self.image = pygame.image.load("pelota.png").convert_alpha()
