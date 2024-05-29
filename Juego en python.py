@@ -11,7 +11,8 @@ golpe_paleta = pygame.mixer.Sound("golpe paleta.ogg")
 glope_bordes = pygame.mixer.Sound("choque_bordes.ogg")
 partida_perdida = pygame.mixer.Sound("perdiste.ogg")
 audio_terror = pygame.mixer.Sound("terror.ogg")
-
+perdiste= pygame.mixer.Sound("perdiste.ogg")
+ganaste=pygame.mixer.Sound("ganaste.mp3")
 def cambiar_idioma(idioma):
     global boton_jugar_solo, boton_jugar, boton_hard, boton_validar, ventana
     if idioma == "Español":
@@ -108,6 +109,8 @@ def salir():
 def hardcore():
     class Juego(object):
         def __init__(self,screen,screen_width,screen_height,background_image):
+             self.game_over=False
+
              self.background_image=background_image
              self.white = (255, 255, 255)
              self.black = (30, 100, 0)
@@ -132,39 +135,80 @@ def hardcore():
              self.all_list_sprite.add(self.raqt)
 
         def eventos_proceso(self):
-            for event in pygame.event.get(): 
-             if event.type == pygame.QUIT:
-                return False 
-            return True
-             
+          for event in pygame.event.get(): 
+           if event.type == pygame.QUIT:
+            return False 
+          
+           if self.game_over:
+            game_over_text = self.font.render("Game Over", True, (220,20,60))
+            self.screen.blit(game_over_text, (self.screen_width // 2 - 100, self.screen_heigth // 2))
+            pygame.display.update()
+           
+            if self.ball.left_score==3:
+               winer_text = "player 1 win"
+               l=1
+            else:
+              winer_text = "PC win"
+              l=2
+            winner_surf=self.font.render(winer_text, True, (220,20,60))
+            self.screen.blit(winner_surf, (self.screen_width // 2 - 100, self.screen_heigth // 2 + 45))
+            if l==2:
+             perdiste.play()
+            else:
+               ganaste.play()
+            winner_surf=self.font.render("Presiona espacio para repetir", True, (220,20,60))
+            self.screen.blit(winner_surf, (self.screen_width // 2 - 300, self.screen_heigth // 2 + 70))
+            pygame.display.update()
+            # Espera a que se presione una tecla
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    perdiste.stop()
+                    ganaste.stop()
+                    self.game_over = False  # Restablece la condición de game over
+                    self.ball.left_score = 0  # Restablece las puntuaciones
+                    self.ball.right_score = 0
+                    self.ball.reset_position()  # Asume que tienes un método para restablecer la posición de la pelota
+                    
+          return True
+
+        
+            
 
         def logica(self):
              # Control de la paleta del jugador
-         keys = pygame.key.get_pressed()
-         if keys[pygame.K_w]:
-            self.player.rect.y -= 14
-         if keys[pygame.K_s]:
-            self.player.rect.y += 14
-        # Control de la paleta del AI
-         if self.ai.rect.centery < self.ball.rect.centery:
-            self.ai.rect.y += 12
-         else:
-            self.ai.rect.y -= 12
-
+         
         # Detecta colisiones entre la pelota y las paletas
-         if pygame.sprite.collide_mask(self.ball, self.player):
-            golpe_paleta.play()
-            self.ball.speedx *= -1
-         if pygame.sprite.collide_mask(self.ball, self.ai):
-            golpe_paleta.play()
-            self.ball.speedx *= -1
-
-         self.all_list_sprite.update()
-
+        
+         keys = pygame.key.get_pressed()
+         if not self.game_over:
+           if keys[pygame.K_w]:
+              self.player.rect.y -= 14
+           if keys[pygame.K_s]:
+              self.player.rect.y += 14
+          
+        # Control de la paleta del AI
+           if self.ai.rect.centery < self.ball.rect.centery:
+               self.ai.rect.y += 18 #velocidad
+           else:
+                self.ai.rect.y -= 18
+        
+           if pygame.sprite.collide_mask(self.ball, self.player):
+            if self.ball.rect.top>= self.player.rect.top and self.ball.rect.bottom<= self.player.rect.bottom:
+             golpe_paleta.play()
+             self.ball.speedx *= -1
+           if pygame.sprite.collide_mask(self.ball, self.ai):
+            if self.ball.rect.top>= self.ai.rect.top and self.ball.rect.bottom<= self.ai.rect.bottom:
+             golpe_paleta.play()
+             self.ball.speedx *= -1
+            
+           if self.ball.left_score==3 or self.ball.right_score==3:
+              self.game_over=True
+           self.all_list_sprite.update() 
+          
         def display_frame(self):
             self.screen.blit(self.background_image, (0, 0))  # Dibuja el fondo
             self.all_list_sprite.draw(self.screen)  # Dibuja todos los sprites
-
+            
         # Dibuja la línea central
             pygame.draw.aaline(self.screen, self.white, (self.screen_width // 2, 0), (self.screen_width // 2, self.screen_heigth))
             pygame.display.update()
@@ -172,7 +216,7 @@ def hardcore():
             self.screen.blit(self.left_text, (self.screen_width // 5, 20))
             right_text = self.font.render("PC = " + str(self.ball.right_score), True, self.white)
             self.screen.blit(right_text, (self.screen_width // 4 * 3, 20))
-    
+            pygame.display.update()
     class Raqueta(pygame.sprite.Sprite):
         def __init__(self, paddel, paddle_width, paddle_height,screen_height):
             super().__init__()
@@ -186,14 +230,14 @@ def hardcore():
             self.rect = self.image.get_rect()
             self.rect.y = (screen_height - self.paddle_height) // 2  # Centra verticalmente la paleta
             self.rect.x = paddel  # Establece la posición horizontal
-
+      
         def update(self):
             # Limita el movimiento de la paleta dentro de la pantalla
             if self.rect.y < 0:
                 self.rect.y = 0
             if self.rect.y > (self.screen_height - self.paddle_height):
                 self.rect.y = self.screen_height - self.paddle_height
-
+          
     # Clase Pelota que representa la pelota del juego
     class Pelota(pygame.sprite.Sprite):
         def __init__(self, left_score, right_score,screen_height,screen_width):
@@ -201,8 +245,8 @@ def hardcore():
             self.screen_height=screen_height
             self.screen_width=screen_width
             self.ballzc = 40
-            self.speedx = 23  # Velocidad inicial en X
-            self.speedy = 24  # Velocidad inicial en Y
+            self.speedx = 24 # Velocidad inicial en X
+            self.speedy = 23  # Velocidad inicial en Y
             self.left_score = left_score
             self.right_score = right_score
             # Carga la imagen de la pelota y la escala
@@ -291,6 +335,7 @@ def juego_solo():
    
     class Juego(object):
         def __init__(self,screen,screen_width,screen_height,background_image):
+             self.game_over=False
              self.background_image=background_image
              self.white = (255, 255, 255)
              self.black = (30, 100, 0)
@@ -318,31 +363,64 @@ def juego_solo():
             for event in pygame.event.get(): 
              if event.type == pygame.QUIT:
                 return False 
+             if self.game_over:
+              game_over_text = self.font.render("Game Over", True, (220,220,220))
+              self.screen.blit(game_over_text, (self.screen_width // 2 - 100, self.screen_heigth // 2))
+              pygame.display.update()
+              if self.ball.left_score==3:
+               winer_text = "player 1 win"
+               l=2
+              else:
+               winer_text = "PC win"
+               l=1
+              
+              winner_surf=self.font.render(winer_text, True, (220,220,220))
+              self.screen.blit(winner_surf, (self.screen_width // 2 - 100, self.screen_heigth // 2 + 45))
+              if l==1:
+                 perdiste.play()
+              else:
+                 ganaste.play()
+              winner_surf=self.font.render("Presiona espacio para repetir", True, (220,220,220))
+              self.screen.blit(winner_surf, (self.screen_width // 2 - 250, self.screen_heigth // 2 + 70))
+              pygame.display.update()
+              # Espera a que se presione una tecla
+              if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    perdiste.stop()
+                    ganaste.stop()
+                    self.game_over = False  # Restablece la condición de game over
+                    self.ball.left_score = 0  # Restablece las puntuaciones
+                    self.ball.right_score = 0
+                    self.ball.reset_position()  # Asume que tienes un método para restablecer la posición de la pelota
+            
             return True
              
 
         def logica(self):
              # Control de la paleta del jugador
          keys = pygame.key.get_pressed()
-         if keys[pygame.K_w]:
+         if not self.game_over:
+          
+          if keys[pygame.K_w]:
             self.player.rect.y -= 14
-         if keys[pygame.K_s]:
+          if keys[pygame.K_s]:
             self.player.rect.y += 14
         # Control de la paleta del AI
-         if self.ai.rect.centery < self.ball.rect.centery:
+          if self.ai.rect.centery < self.ball.rect.centery:
             self.ai.rect.y += 12
-         else:
+          else:
             self.ai.rect.y -= 12
 
         # Detecta colisiones entre la pelota y las paletas
-         if pygame.sprite.collide_mask(self.ball, self.player):
+          if pygame.sprite.collide_mask(self.ball, self.player):
             golpe_paleta.play()
             self.ball.speedx *= -1
-         if pygame.sprite.collide_mask(self.ball, self.ai):
+          if pygame.sprite.collide_mask(self.ball, self.ai):
             golpe_paleta.play()
             self.ball.speedx *= -1
-
-         self.all_list_sprite.update()
+          if self.ball.left_score==3 or self.ball.right_score==3:
+              self.game_over=True
+          self.all_list_sprite.update()
 
         def display_frame(self):
             self.screen.blit(self.background_image, (0, 0))  # Dibuja el fondo
@@ -350,11 +428,12 @@ def juego_solo():
 
         # Dibuja la línea central
             pygame.draw.aaline(self.screen, self.white, (self.screen_width // 2, 0), (self.screen_width // 2, self.screen_heigth))
-            pygame.display.update()
+
             self.left_text = self.font.render("Tu = " + str(self.ball.left_score), True, self.white)
             self.screen.blit(self.left_text, (self.screen_width // 5, 20))
             right_text = self.font.render("PC = " + str(self.ball.right_score), True, self.white)
             self.screen.blit(right_text, (self.screen_width // 4 * 3, 20))
+            pygame.display.update()
     class Raqueta(pygame.sprite.Sprite):
         def __init__(self, paddel, paddle_width, paddle_height,screen_height):
             super().__init__()
@@ -446,6 +525,7 @@ def juego_solo():
 def A_vs_B():
     class Juego(object):
         def __init__(self,screen,screen_width,screen_height,background_image,a,b):
+             self.game_over=False
              self.a=a
              self.b=b
              self.background_image=background_image
@@ -475,33 +555,60 @@ def A_vs_B():
             for event in pygame.event.get(): 
              if event.type == pygame.QUIT:
                 return False 
+             if self.game_over:
+              game_over_text = self.font.render("Game Over", True, (220,220,220))
+              self.screen.blit(game_over_text, (self.screen_width // 2 - 100, self.screen_heigth // 2))
+              pygame.display.update()
+              if self.ball.left_score==3:
+               winer_text = self.a +"  win"
+               
+              else:
+               winer_text = self.b +"  win"
+              winner_surf=self.font.render(winer_text, True, (220,220,220))
+              self.screen.blit(winner_surf, (self.screen_width // 2 - 100, self.screen_heigth // 2 + 45))
+              ganaste.play()
+              winner_surf=self.font.render("Presiona espacio para repetir", True, (220,220,220))
+              self.screen.blit(winner_surf, (self.screen_width // 2 - 250, self.screen_heigth // 2 + 70))
+              pygame.display.update()
+              # Espera a que se presione una tecla
+             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.game_over = False  # Restablece la condición de game over
+                    self.ball.left_score = 0  # Restablece las puntuaciones
+                    self.ball.right_score = 0
+                    self.ball.reset_position()  # Asume que tienes un método para restablecer la posición de la pelota
+                    
+
             return True
              
 
         def logica(self):
              # Control de la paleta del jugador
-         keys = pygame.key.get_pressed()
-         if keys[pygame.K_w]:
+         if not self.game_over:
+          keys = pygame.key.get_pressed()
+          if keys[pygame.K_w]:
             self.player1.rect.y -= 14
-         if keys[pygame.K_s]:
+          if keys[pygame.K_s]:
             self.player1.rect.y += 14
         # Control de la paleta del P2
-         if keys[pygame.K_UP]:
+          if keys[pygame.K_UP]:
                 self.player2.rect.y -= 15
-         if keys[pygame.K_DOWN]:
+          if keys[pygame.K_DOWN]:
                 self.player2.rect.y += 15
 
             # Detecta colisiones entre la pelota y las paletas
-         if pygame.sprite.collide_mask(self.ball, self.player1):
+          if pygame.sprite.collide_mask(self.ball, self.player1):
                 self.ball.speedx +=2
                 self.ball.speedx *= -1
                 golpe_paleta.play()
-         if pygame.sprite.collide_mask(self.ball, self.player2):
+          if pygame.sprite.collide_mask(self.ball, self.player2):
                 self.ball.speedx +=2
                 self.ball.speedx *= -1
                 golpe_paleta.play()
+          if self.ball.left_score==3 or self.ball.right_score==3:
+              self.game_over=True
         # Detecta colisiones entre la pelota y las paletas
-         self.all_list_sprite.update()
+          self.all_list_sprite.update()
 
         def display_frame(self):
             self.screen.blit(self.background_image, (0, 0))  # Dibuja el fondo
@@ -509,11 +616,12 @@ def A_vs_B():
 
         # Dibuja la línea central
             pygame.draw.aaline(self.screen, self.white, (self.screen_width // 2, 0), (self.screen_width // 2, self.screen_heigth))
-            pygame.display.update()
+
             self.left_text = self.font.render(f"{self.a} = " + str(self.ball.left_score), True, self.white)
             self.screen.blit(self.left_text, (self.screen_width // 5, 20))
             right_text = self.font.render(f"{self.b} = " + str(self.ball.right_score), True, self.white)
             self.screen.blit(right_text, (self.screen_width // 4 * 3, 20))
+            pygame.display.update()
     class Raqueta(pygame.sprite.Sprite):
         def __init__(self, paddel, paddle_width, paddle_height,screen_height):
             super().__init__()
@@ -606,154 +714,6 @@ def A_vs_B():
          sys.exit()  #
     if __name__=="__main__":
         main()
-  
-    '''
-    class Raqueta(pygame.sprite.Sprite):
-        def __init__(self, paddel, paddle_width, paddle_height):
-            super().__init__()
-            self.paddle_width = paddle_width
-            self.paddle_height = paddle_height
-            # Carga la imagen de la paleta y la escala
-            self.image = pygame.image.load("tablar.png").convert()
-            self.image = pygame.transform.scale(self.image, (self.paddle_width, self.paddle_height))
-            self.image.set_colorkey([0, 0, 0])  # Elimina el fondo negro
-            self.rect = self.image.get_rect()
-            self.rect.y = (screen_height - self.paddle_height) // 2  # Centra verticalmente la paleta
-            self.rect.x = paddel  # Establece la posición horizontal
-
-        def update(self):
-            # Limita el movimiento de la paleta dentro de la pantalla
-            if self.rect.y < 0:
-                self.rect.y = 0
-            if self.rect.y > (screen_height - self.paddle_height):
-                self.rect.y = screen_height - self.paddle_height
-
-    class Pelota(pygame.sprite.Sprite):
-        def __init__(self, left_score, right_score):
-            super().__init__()
-            self.ballzc = 40
-            self.speedx = 14  # Velocidad inicial en X
-            self.speedy = 14  # Velocidad inicial en Y
-            self.left_score = left_score
-            self.right_score = right_score
-            # Carga la imagen de la pelota y la escala
-            self.image = pygame.image.load("pelota.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (self.ballzc, self.ballzc))
-            self.image.set_colorkey([255, 255, 255])  # Elimina el fondo blanco
-            self.rect = self.image.get_rect()
-            self.rect.x = (screen_width - self.ballzc) // 2  # Centra horizontalmente la pelota
-            self.rect.y = (screen_height - self.ballzc) // 2  # Centra verticalmente la pelota
-
-        def update(self):
-            # Actualiza la posición de la pelota
-            self.rect.x += self.speedx
-            self.rect.y += self.speedy
-            # Rebote en los bordes superior e inferior
-            if self.rect.top <= 0 or self.rect.bottom >= screen_height:
-                self.speedy *= -1
-            # Rebote en los bordes izquierdo y derecho
-            if self.rect.left <= 0:
-
-                self.speedx *= -1
-                self.right_score += 1
-                self.reset_position()
-            if self.rect.right >= screen_width:
-                self.speedx *= -1
-                self.left_score += 1
-                self.reset_position()
-
-        def reset_position(self):
-            self.rect.x = (screen_width - self.ballzc) // 2
-            self.rect.y = (screen_height - self.ballzc) // 2
-            self.speedx = 14  # Velocidad inicial en X
-            self.speedy = 14
-   
-    a = usuario_1.get()
-    b = usuario_2.get()
-    if a == "" or b == "":
-        messagebox.showerror("Campo Vacio", "Ingrese el nombre de los jugadores")
-    else:
-        pygame.init()  # Inicializa todos los módulos de Pygame
-        screen_width = 1200
-        screen_height = 800
-        screen = pygame.display.set_mode((screen_width, screen_height))  # Configura el tamaño de la ventana
-        pygame.display.set_caption("Ping Pong")  # Establece el título de la ventana
-
-        # Carga y escala la imagen de fondo
-        background_image = pygame.image.load("mesa azul.png")
-        background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
-
-        # Colores
-        white = (255, 255, 255)
-        black = (30, 100, 0)
-
-        left_score = 0  # Puntuación del jugador
-        right_score = 0  # Puntuación del AI
-
-        font = pygame.font.Font(None, 74)  # Fuente para mostrar la puntuación
-
-        running = True
-        clock = pygame.time.Clock()
-
-        all_list_sprite = pygame.sprite.Group()
-        raqt = pygame.sprite.Group()
-        paddle_height = 180  # Altura de las paletas
-        player1 = Raqueta(50, 50, paddle_height)  # Paleta del jugador 1
-        player2 = Raqueta(screen_width - 50 - player1.paddle_width, 50, paddle_height)  # Paleta del jugador 2
-        ball = Pelota(left_score, right_score)  # Pelota del juego
-        raqt.add(player1)
-        raqt.add(player2)
-        all_list_sprite.add(ball)
-        all_list_sprite.add(raqt)
-        pygame.init()
-
-        # Bucle principal del juego
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False  # Termina el juego si se cierra la ventana
-
-            # Control de la paleta del jugador 1
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_w]:
-                player1.rect.y -= 15
-            if keys[pygame.K_s]:
-                player1.rect.y += 15
-
-            # Control de la paleta del jugador 2
-            if keys[pygame.K_UP]:
-                player2.rect.y -= 15
-            if keys[pygame.K_DOWN]:
-                player2.rect.y += 15
-
-            # Detecta colisiones entre la pelota y las paletas
-            if pygame.sprite.collide_mask(ball, player1):
-                ball.speedx +=2
-                ball.speedx *= -1
-            if pygame.sprite.collide_mask(ball, player2):
-                ball.speedx +=2
-                ball.speedx *= -1
-
-            all_list_sprite.update()
-
-            screen.blit(background_image, (0, 0))  # Dibuja el fondo
-            all_list_sprite.draw(screen)  # Dibuja todos los sprites
-
-            # Dibuja la línea central
-            pygame.draw.aaline(screen, white, (screen_width // 2, 0), (screen_width // 2, screen_height))
-
-            # Muestra la puntuación
-            left_text = font.render("Tu = " + str(ball.left_score), True, white)
-            screen.blit(left_text, (screen_width // 5, 20))
-            right_text = font.render("PC = " + str(ball.right_score), True, white)
-            screen.blit(right_text, (screen_width // 4 * 3, 20))
-
-            pygame.display.update()
-            clock.tick(60)  # Limita el juego a 60 FPS
-
-        pygame.quit()  # Termina Pygame
-        sys.exit()  # Cierra el programa
-'''
 
 ventana = Tk()
 ventana.iconbitmap("logo_usc.ico")
