@@ -14,6 +14,7 @@ partida_perdida = pygame.mixer.Sound("perdiste.ogg")
 audio_terror = pygame.mixer.Sound("terror.ogg")
 perdiste= pygame.mixer.Sound("perdiste.ogg")
 ganaste=pygame.mixer.Sound("ganaste.mp3")
+risa = pygame.mixer.Sound("risa.mp3")
 
 def cambiar_idioma(idioma):
     global boton_jugar_solo, boton_jugar, boton_hard, boton_validar, ventana
@@ -155,7 +156,7 @@ def hardcore():
             winner_surf=self.font.render(winer_text, True, (220,20,60))
             self.screen.blit(winner_surf, (self.screen_width // 2 - 100, self.screen_heigth // 2 + 45))
             if l==2:
-             perdiste.play()
+             risa.play()
             else:
                ganaste.play()
             winner_surf=self.font.render("Presiona espacio para repetir", True, (220,20,60))
@@ -164,7 +165,7 @@ def hardcore():
             # Espera a que se presione una tecla
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    perdiste.stop()
+                    risa.stop()
                     ganaste.stop()
                     self.game_over = False  ## restablece la condición de game over
                     self.ball.left_score = 0  # restablece las puntuaciones
@@ -194,10 +195,12 @@ def hardcore():
         
            if pygame.sprite.collide_mask(self.ball, self.player):
             if self.ball.rect.top>= self.player.rect.top and self.ball.rect.bottom<= self.player.rect.bottom:
+             risa.play()
              golpe_paleta.play()
              self.ball.speedx *= -1
            if pygame.sprite.collide_mask(self.ball, self.ai):
             if self.ball.rect.top>= self.ai.rect.top and self.ball.rect.bottom<= self.ai.rect.bottom:
+             risa.play()
              golpe_paleta.play()
              self.ball.speedx *= -1
             
