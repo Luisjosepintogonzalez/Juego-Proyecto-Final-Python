@@ -1,0 +1,22 @@
+INSTRUCCIONES:
+
+el juego se basa en el clásico juego de pin pon
+
+JUGAR SOLO:
+si quiere jugar solo con la PC debe usar las teclas W (SUBIR) y S (BAJAR)
+Ganas con tres puntos
+
+A vs B:
+Si quieres jugar con alguien, deben introducir sus nombres obligatoriamente
+El ganador será quien saque tres puntos, para la arrevancha, deben pulsar REINICIAR
+CONTROLES:
+Jugador A: SUBIR (W), BAJAR(S)
+Jugador B: SUBIR (flecha ARRIBA), BAJAR (flecha ABAJO)
+
+HARDCORE:
+Solo para las mentes veloces, debes estar muy concentrado para ganarle a tu oponente.
+Si pierdes, mueve el mouse para ver las indicaciones. !!!NO DEJES QUE SE BURLE DE TI!!!
+(SUERTE).
+
+AJUSTES:
+puedes cambiar el idioma.
